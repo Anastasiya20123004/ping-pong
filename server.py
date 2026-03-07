@@ -21,6 +21,19 @@ class GameServer:
         self.lock = threading.Lock()
         self.reset_game_state()
         self.sound_event = None
+        self.table = "score.json"
+
+    def add_points(self, points, player_id):
+        with open(self.table, "r") as file:
+            data = json.load(file)
+
+        players = data["players"]
+        players[player_id]["score"] += points
+        data["players"] = players
+
+        with open(self.table, "w") as file:
+            json.dumps(data, file, indent = 4)
+
 
     def reset_game_state(self):
         self.paddles = {0: 250, 1: 250}
@@ -80,9 +93,8 @@ class GameServer:
                 self.ball['x'] += self.ball['vx']
                 self.ball['y'] += self.ball['vy']
 
-                if self.ball['y'] <= 60 or self.ball['y'] >= HEIGHT:
+                if self.ball['y'] <= 10 or self.ball['y'] >= HEIGHT:
                     self.ball['vy'] *= -1
-                    self.sound_event = "wall_hit"
 
                 if (self.ball['x'] <= 40 and self.paddles[0] <= self.ball['y'] <= self.paddles[0] + 100) or \
                    (self.ball['x'] >= WIDTH - 40 and self.paddles[1] <= self.ball['y'] <= self.paddles[1] + 100):
@@ -90,17 +102,20 @@ class GameServer:
                     self.sound_event = 'platform_hit'
 
                 if self.ball['x'] < 0:
+                    self.sound_event = "wall_hit"
                     self.scores[1] += 1
                     self.reset_ball()
                 elif self.ball['x'] > WIDTH:
+                    self.sound_event = "wall_hit"
                     self.scores[0] += 1
                     self.reset_ball()
 
                 if self.scores[0] >= 10:
                     self.game_over = True
                     self.winner = 0
-                elif self.scores[1] >= 10:
+                elif self.scores[1] == 10:
                     self.game_over = True
+
                     self.winner = 1
 
                 self.broadcast_state()
