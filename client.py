@@ -1,6 +1,7 @@
 from pygame import *
 import socket
 import json
+import pygame
 from threading import Thread
 
 # ---ПУГАМЕ НАЛАШТУВАННЯ ---
@@ -38,8 +39,8 @@ def receive():
             break
 
 # --- ШРИФТИ ---
-font_win = font.Font(None, 72)
-font_main = font.Font(None, 36)
+font_win = font.Font("Oswald-VariableFont_wght.ttf", 72)
+font_main = font.Font("Knewave-Regular.ttf", 36)
 # --- ЗОБРАЖЕННЯ ----
 BG_IMG = transform.scale(image.load('images/Board.png'), (WIDTH, HEIGHT))
 PLAYER1_IMG = transform.scale(image.load('images/Player1.png'), (20, 100))
@@ -49,7 +50,11 @@ SCORE_BAR_LEFT = transform.scale(image.load('images/ScoreBar.png'), (350, 60))
 SCORE_BAR_RIGHT = transform.flip(transform.scale(image.load('images/ScoreBar.png'), (350, 60)), True, False)
 ball_motion_img = transform.scale(image.load('images/BallMotion.png'), (50, 35))
 # --- ЗВУКИ ---
-
+def play_sound(sound_path, volume):
+    pygame.mixer.init()
+    pygame.mixer.music.load(sound_path)
+    pygame.mixer.music.set_volume(volume)
+    pygame.mixer.music.play(-1)
 # --- ГРА ---
 game_over = False
 winner = None
@@ -70,8 +75,7 @@ while True:
 
     if "winner" in game_state and game_state["winner"] is not None:
         screen.fill((20, 20, 20))
-
-        if you_winner is None:  # Встановлюємо тільки один раз
+        if you_winner is None: # Встановлюємо тільки один раз
             if game_state["winner"] == my_id:
                 you_winner = True
             else:
@@ -86,7 +90,7 @@ while True:
         text_rect = win_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
         screen.blit(win_text, text_rect)
 
-        text = font_win.render('К - рестарт', True, (255, 215, 0))
+        text = font_win.render('K - restart', True, (255, 215, 0))
         text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 120))
         screen.blit(text, text_rect)
 
@@ -104,13 +108,12 @@ while True:
         if game_state['sound_event']:
             if game_state['sound_event'] == 'wall_hit':
                 # звук відбиття м'ячика від стін
-                pass
+                play_sound("sounds/wall-hit.mp3", 0.5)
             if game_state['sound_event'] == 'platform_hit':
                 # звук відбиття м'ячика від платформи
-                pass
-
+                play_sound("sounds/soundreality-tennis-ball-hit-151257.mp3", 0.5)
     else:
-        wating_text = font_main.render(f"Очікування гравців...", True, (255, 255, 255))
+        wating_text = font_main.render(f"Waiting players...", True, (255, 255, 255))
         screen.blit(wating_text, (WIDTH // 2 - 25, 20))
 
     display.update()
